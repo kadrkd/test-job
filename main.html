@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GREEN-API Integration</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin: 20px 0;
+        }
+        .container {
+            display: flex;
+            flex-direction: row;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .form-section {
+            flex: 1;
+            padding: 20px;
+            border-right: 1px solid #ddd;
+        }
+        .output-section {
+            flex: 1;
+            padding: 20px;
+            background: #f9f9f9;
+            overflow-y: auto;
+            height: auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .button-group button {
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #4caf50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+        }
+        .button-group button:hover {
+            background-color: #45a049;
+        }
+        .output-section pre {
+            background: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>GREEN-API Integration</h1>
+    <div class="container">
+        <div class="form-section">
+            <div class="form-group">
+                <label for="idInstance">ID Instance:</label>
+                <input type="text" id="idInstance" placeholder="Введите ID Instance">
+            </div>
+            <div class="form-group">
+                <label for="apiToken">API Token Instance:</label>
+                <input type="text" id="apiToken" placeholder="Введите API Token Instance">
+            </div>
+            <div class="button-group">
+                <button onclick="getSettings()">getSettings</button>
+                <button onclick="getStateInstance()">getStateInstance</button>
+            </div>
+            <div class="form-group">
+                <label for="phoneNumber">Phone Number:</label>
+                <input type="text" id="phoneNumber" placeholder="Введите номер телефона">
+            </div>
+            <div class="form-group">
+                <label for="message">Message:</label>
+                <input type="text" id="message" placeholder="Введите сообщение">
+            </div>
+            <button onclick="sendMessage()">sendMessage</button>
+            <div class="form-group">
+                <label for="fileUrl">File URL:</label>
+                <input type="text" id="fileUrl" placeholder="Введите URL файла">
+            </div>
+            <button onclick="sendFileByUrl()">sendFileByUrl</button>
+        </div>
+        <div class="output-section" id="response">
+            <pre>Ответ методов будет отображен здесь...</pre>
+        </div>
+    </div>
+    <script>
+        async function callGreenApi(endpoint, method = 'GET', body = null) {
+            const idInstance = document.getElementById("idInstance").value;
+            const apiToken = document.getElementById("apiToken").value;
+
+            if (!idInstance || !apiToken) {
+                alert("Пожалуйста, заполните поля ID Instance и API Token!");
+                return;
+            }
+
+            const url = `https://api.green-api.com/waInstance${idInstance}/${endpoint}/${apiToken}`;
+            const options = {
+                method: method,
+                headers: { "Content-Type": "application/json" },
+                body: body ? JSON.stringify(body) : null
+            };
+
+            try {
+                const response = await fetch(url, options);
+                const data = await response.json();
+                document.getElementById("response").textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById("response").textContent = `Ошибка: ${error.message}`;
+            }
+        }
+
+        function getSettings() {
+            callGreenApi('getSettings');
+        }
+
+        function getStateInstance() {
+            callGreenApi('getStateInstance');
+        }
+
+        function sendMessage() {
+            const phoneNumber = document.getElementById("phoneNumber").value;
+            const message = document.getElementById("message").value;
+
+            if (!phoneNumber || !message) {
+                alert("Введите номер телефона и сообщение!");
+                return;
+            }
+
+            callGreenApi('sendMessage', 'POST', { chatId: `${phoneNumber}@c.us`, message });
+        }
+
+        function sendFileByUrl() {
+            const phoneNumber = document.getElementById("phoneNumber").value;
+            const fileUrl = document.getElementById("fileUrl").value;
+
+            if (!phoneNumber || !fileUrl) {
+                alert("Введите номер телефона и URL файла!");
+                return;
+            }
+
+            callGreenApi('sendFileByUrl', 'POST', { chatId: `${phoneNumber}@c.us`, url: fileUrl });
+        }
+    </script>
+</body>
+</html>
